@@ -1,0 +1,62 @@
+---
+title: "Laborationsrapport X"
+subtitle: "Introduktion till R-programmering"
+author: Exempel Exempelson
+format: html
+editor: visual
+---
+
+## En introduktion till Quarto
+
+Detta är en mall som är tänkt att användas som bas för era laborationsrapporter. Quarto är ett verktyg som låter oss kombinera kod, text, och utput (som bilder och beräkningar) i ett och samma dokument, exempelvis ett word-, pdf-, eller html-dokument. För att generera en rapport från ett quarto-dokument, som det du läser nu, klicka på "Render". Testa detta nu!
+
+Du kommer att använda quarto till att skriva labrapporter och inlämningsuppgifter. Quarto-dokument har två "lägen": *source* och *visual*. Knappar för att växla mellan source och visual hittar du ovanför quartodokumentet, till vänster. Source visar precis vad som står i quartodokumentet, och visual visar en något polerad version där ex markdownkod har dolts (mer om detta nedan).
+
+### Block (chunks)
+
+Ditt quarto-dokument kommer, när du är klar, bestå av växlande "block" av vanlig text och R-kod. Vanlig text skriver du som vanligt, men R-kod måste du skriva i *code chunks*. För att lägga in en ny chunk i ett dokument, använd ctrl-alt-i (cmd-opt-i på mac).
+
+Ett exempel på en code-chunk är följande
+
+```{r}
+a <- 1 + 3
+a
+```
+
+### Markdown
+
+Quarto använder *markdown* för att formatera text. Markdown går att använda till många saker, exempelvis att göra text *kursiv* eller **fet**, men den enda markdownkoden ni *behöver* kunna för att skriva era labbrapporter är att skriva rubriker. Rubriker i markdown skrivs med en eller flera #. En \# ger en *huvudtitel*, och \## ger en *undertitel*. Ni ska organisera er kod så att varje uppgift har en egen huvudtitel, och varje deluppgift har en egen undertitel. För ett exempel på hur detta ser ut, se exemplet på Uppgift 1. Testa att byta från source till visual och tillbaks igen för att se hur markdown funkar!
+
+### Chunk options
+
+En viktig quarto-funktion är *chunk options*. Chunk options låter oss bestämma hur R-koden i en chunk ska utföras. Om du exempelvis skriver en rapport så vill du kanske inte ha med själva R-koden, utan bara output. Du kan då använda *echo: false*. När du renderar denna rapport kommer denna chunk inte synas, utan endast outputen (en 4:a i detta fall).
+
+```{r}
+#| echo: false
+a <- 1 + 3
+a
+```
+
+### Att dölja onödig output
+
+Du kanske har sett att vissa paket skriver ut information och varningar i konsolen när vi laddar in dom. Detta ser fult ut i en rapport, och för att undvika att det händer kan vi använda följande chunk options. Mitt tipps är att ha en chunk med samtliga paket du använder i rapporten i början. Jag har inkluderat en sådan exempelchunk under rubriken *paket*.
+
+Du är nu redo att radera all text från "En introduktion till Quarto" fram till och med denna mening! Lycka till med labben!
+
+## Paket
+
+```{r}
+#| warning: false
+#| message: false
+# lägg in alla dina library-calls här
+```
+
+## Uppgift 1
+
+### Deluppgigt 1a
+
+Text som beskriver deluppgift 1a här.
+
+```{r}
+# Koden till deluppgift 1a här
+```

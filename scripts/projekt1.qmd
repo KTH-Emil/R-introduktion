@@ -1,0 +1,168 @@
+---
+title: "Inlämning - Projekt 1"
+subtitle: "Introduktion till R-programmering"
+author: Emil Johansson, Rana Abdullah, Dilshad Talib
+format: html
+editor: visual
+---
+
+```{r Bestäm arbetsmapp, results='hide'}
+# Borde lösa sig av sig själv om man öppnar projektet som det är
+setwd("/cloud/project")
+```
+
+
+```{r Installera paket, echo=FALSE, results='hide'}
+# Bara om det är första gången
+install.packages('tidyverse')
+```
+
+```{r Tillgängligör paketen, echo=FALSE}
+library(tidyverse, quietly = T)
+```
+
+###Uppgift 1- Inläsning och databearbetning
+
+Vi läser in cdc_data som innehåller följande 9 variabler: `genhlth`, `exerany`, `hltplan`, `smoke100`, `height`, `weight`, `wtdesire`, `age` och `gender`
+
+##a)
+Vi börjar med att importera .csv filen och kontrollerar att den är 20.000 x 9.
+
+```{r a) Importera}
+# Hänvisar till vilken väg som leder till cdc_data
+path <- '/cloud/project/data/cdc_data.csv'
+
+# Läser in cdc_data, detta blir en "data.frame"
+df <- read_csv(path)
+class(df)
+# Vi säkerhetsställer att vi har en data.frame
+df <- as.data.frame(df)
+class(df)
+
+# Sätt att se att cdc_data har 20.000 rader och 9 kolumner
+# view(df)
+# str(df)
+a <- length(rownames(df)) # 20.000 rader!
+b <- length(colnames(df)) # det finns faktiskt 10 kolumner! Det beror på att den första raden består av en index-lista
+
+print(paste("Det finns", a, "rader"))
+print(paste("Det finns", b, "kolumner!"))
+```
+Nu vill vi konvertera dom amerikanska måtten till de svenska. Vi skapar en ny df som heter df_sv. Vi skulle också kunna behålla namnet df genom att skriva `df <- df`.
+
+```{r b) Konvertera}
+# 1 inch = 2.54 cm, källa: google
+# 1 lbs (pounds) = 0.45359237 kg, källa: google
+
+df_sv <- df %>%
+  mutate(height = height*2.54, 
+         weight = weight*0.45359237, 
+         wtdesire = wtdesire*0.45359237)
+
+# kontrollerar detta snabbt att det har hänt
+# view(df_sv$height)
+# view(df_sv$weight)
+```
+
+Vi tar bort `exerany` och `hltplan`. Fråga: ska vi ta bort index också eftersom vi ville ha 9 kolumner och inte 10?
+```{r c) Sålla bort}
+# Vi omdefinerar den nya df utan dom onödiga kolumnerna som df_new
+df_new <- df_sv %>%
+  select(-c(exerany, hlthplan, 1))
+
+# Vi kan kontrollera detta
+# str(df_new)
+```
+
+Nu ska vi ta reda på vilka variabler som är kategoriska och göra dom till faktorvariabler istället
+```{r d) kategorisk}
+# Kategoriska variabler är dom som har ett fixerat antal alternativ som svar, I vårt fall har vi: genhlth (poor, fair, good, very good, excellent), smoke100 (0, 1), gender (m, f)
+
+df_new_new <- df_new %>%
+  mutate(genhlth = as.factor(genhlth), 
+         smoke100 = as.factor(smoke100), 
+         gender = as.factor(gender))
+
+# Vi kan kontrollera detta
+# class(df_new_new$genhlth)
+# class(df_new_new$smoke100)
+# class(df_new_new$gender)
+
+```
+
+```{r extra}
+# Om vi vill kan vi omdefinera df_new_new tillbaks som df
+df <- df_new_new
+```
+
+###Uppgift 2 - Beräkningar
+
+Vi börjar med att räkna andelen av varje 
+```{r a) fördelningen}
+# Först börjar vi med att kolla vilka svarsalternativ det finns
+kategorier <- unique(df$genhlth)
+kategorier
+
+# Då vet vi att vi har excellent, fair, good, poor och very good.
+
+genhlth <- table(df$genhlth)
+genhlth <- as.data.frame(genhlth)
+genhlth_andel <- genhlth %>%
+  mutate(andel = (Freq/20000)*100)
+
+for (i in 1) { # for-loop, men det räcker med att loopa en gång
+  print(paste("Hälsostatusen", genhlth_andel$Var1 ,
+              "står för", genhlth_andel$andel,
+              "% av det totala antalet tillstånd"))
+  
+}
+```
+
+Nu vill vi skriva ut de 10 första raderna i en ny df vi kallar f_smoke.
+```{r b) f-smoke}
+f_smoke <- df %>%
+  filter(gender == "f", smoke100 == "1")
+f_smoke[1:10, ]
+```
+
+Nu ska vi kolla hur många kvinnor det är som har rökt minst 100 cigaretter
+```{r c) Andelen som har rökt}
+# Andelen kvinnor som har rökt >100 cigaretter
+antal_kvinnor_som_rökt <- count(f_smoke) # 4419 kvinnor av de 20 000!
+antal_kvinnor_som_rökt
+
+antal_kvinnor <- df %>%
+  filter(gender == "f")
+antal_kvinnor <- count(antal_kvinnor)
+
+andel_kvinnor_som_rökt <- (antal_kvinnor_som_rökt / antal_kvinnor)*100
+print(paste("Andelen kvinnor som har rökt fler än 100 cigaretter är",
+            andel_kvinnor_som_rökt, "%"))
+
+# Andelen män som har rökt >100 cigaretter
+m_smoke <- df %>%
+  filter(gender == "m", smoke100 == "1")
+
+antal_män_som_rökt <- count(m_smoke) # 4419 kvinnor av de 20 000!
+
+antal_män <- df %>%
+  filter(gender == "m")
+antal_män <- count(antal_män)
+
+andel_män_som_rökt <- (antal_män_som_rökt / antal_män)*100
+print(paste("Andelen män som har rökt fler än 100 cigaretter är",
+            andel_män_som_rökt, "%"))
+
+```
+
+Nu skapar vi en variabel diff, samt wtstatus
+```{r d) viktstatus}
+df_vikt <- df %>%
+  mutate(diff = (weight - wtdesire)) %>%
+  mutate(wtstatus = case_when(diff == 0 ~ 'idealvikt',
+                              diff < 0 ~ 'undervikt',
+                              diff > 0 ~ 'overvikt'))
+
+# df_vikt[1:10, ] # För att visa ett exempel
+```
+
